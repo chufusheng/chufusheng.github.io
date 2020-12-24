@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <meta name="description" content="yanm1ng&#39;s blog">
+  <meta name="keyword" content="hexo-theme, vuejs">
+  
+    <link rel="shortcut icon" href="/css/images/logo.png">
+  
+  <title>
+    
+      Jmeter压测实时监控 | ITest
+    
+  </title>
+  <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" rel="stylesheet">
+  <link href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css" rel="stylesheet">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/css/plugins/gitment.css">
+
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/geopattern/1.2.3/js/geopattern.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
+  
+  
+    
+<script src="/js/gitment.js"></script>
+
+  
+  
+  
+    <!-- MathJax support START -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <!-- MathJax support END -->
+  
+
+
+  
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="ITest" type="application/atom+xml">
+</head>
+<div class="wechat-share">
+  <img src="/css/images/logo.png" />
+</div>
+
+  <body>
+    <header class="header fixed-header">
+  <div class="header-container">
+    <a class="home-link" href="/">
+      <div class="logo"></div>
+      <span>ITest</span>
+    </a>
+    <ul class="right-list">
+      
+        <li class="list-item">
+          
+            <a href="/" class="item-link">Home</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/tags/" class="item-link">Tags</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/archives/" class="item-link">Archives</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/project/" class="item-link">Projects</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/about/" class="item-link">About</a>
+          
+        </li>
+      
+    </ul>
+    <div class="menu">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </div>
+    <div class="menu-mask">
+      <ul class="menu-list">
+        
+          <li class="menu-item">
+            
+              <a href="/" class="menu-link">Home</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/tags/" class="menu-link">Tags</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/archives/" class="menu-link">Archives</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/project/" class="menu-link">Projects</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/about/" class="menu-link">About</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</header>
+
+    <div id="article-banner">
+  <h2>Jmeter压测实时监控</h2>
+  <p class="post-date">2020-12-23</p>
+  <div class="arrow-down">
+    <a href="javascript:;"></a>
+  </div>
+</div>
+<main class="app-body flex-box">
+  <!-- Article START -->
+  <article class="post-article">
+    <section class="markdown-content"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>jmeter 在调试脚本时，用的是gui界面，可以通过界面监控插件实时查看数据.但在真实测试中，我们往往用的的是非gui界面，这样可以避免界面对性能测试<br>的影响，此时我们就需求在非gui界面做一些实时监控，这里介绍一种方法满足这个需求。jmeter.Backend Listener + Grafana + InfluxDB</p>
+<h2 id="InfluxDB"><a href="#InfluxDB" class="headerlink" title="InfluxDB"></a>InfluxDB</h2><p>简介：InfluxDB是一个开源的没有外部依赖的时间序列数据库 适用于记录度量，事件及执行分析</p>
+<h3 id="安装InfluxDB"><a href="#安装InfluxDB" class="headerlink" title="安装InfluxDB"></a>安装InfluxDB</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mac    &gt; brew update</span><br><span class="line">          &gt; brew install influxdb</span><br><span class="line">          &gt; ln -sfv &#x2F;usr&#x2F;local&#x2F;opt&#x2F;influxdb&#x2F;*.plist ~&#x2F;Library&#x2F;LaunchAgents</span><br><span class="line">          &gt; launchctl load ~&#x2F;Library&#x2F;LaunchAgents&#x2F;homebrew.mxcl.influxdb.plist</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   linux  &gt;wget https:&#x2F;&#x2F;dl.influxdata.com&#x2F;influxdb&#x2F;releases&#x2F;influxdb-0.13.0.x86_64.rpm</span><br><span class="line">          &gt;sudo yum localinstall influxdb-0.13.0.x86_64.rpm</span><br></pre></td></tr></table></figure>
+
+
+<p>配置InfluxDB</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]# vi &#x2F;etc&#x2F;influxdb&#x2F;influxdb.conf</span><br><span class="line"></span><br><span class="line"># 找到graphite并且修改它的库与端口</span><br><span class="line">[[graphite]]</span><br><span class="line">  enabled &#x3D; true</span><br><span class="line">  database &#x3D; &quot;jmeter&quot;</span><br><span class="line">  bind-address &#x3D; &quot;:2003&quot;</span><br><span class="line">  protocol &#x3D; &quot;tcp&quot;</span><br><span class="line">  consistency-level &#x3D; &quot;one&quot;</span><br><span class="line"></span><br><span class="line"># 找到admin，将前面的#号去掉，开放它的UI端口</span><br><span class="line">[admin]</span><br><span class="line">  # Determines whether the admin service is enabled.</span><br><span class="line">  enabled &#x3D; true</span><br><span class="line"></span><br><span class="line">  # The default bind address used by the admin service.</span><br><span class="line">  bind-address &#x3D; &quot;:8083&quot;</span><br><span class="line"></span><br><span class="line">  # Whether the admin service should use HTTPS.</span><br><span class="line">  # https-enabled &#x3D; false</span><br><span class="line"></span><br><span class="line">  # The SSL certificate used when HTTPS is enabled.</span><br><span class="line">  # https-certificate &#x3D; &quot;&#x2F;etc&#x2F;ssl&#x2F;influxdb.pem</span><br></pre></td></tr></table></figure>
+
+
+
+
+<p>创建数据库</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&gt; influx</span><br><span class="line">&gt; CREATE DATABASE jmeter</span><br></pre></td></tr></table></figure>
+
+<p>启动InfluxDB</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]# &#x2F;etc&#x2F;init.d&#x2F;influxdb restart</span><br><span class="line">Stopping influxdb...</span><br><span class="line">influxdb process was stopped [ OK ]</span><br><span class="line">Starting influxdb...</span><br><span class="line">influxdb process was started [ OK ]</span><br></pre></td></tr></table></figure>
+
+<p>按配置启动</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt; influxd -config &#x2F;usr&#x2F;local&#x2F;etc&#x2F;influxdb.conf</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Jmeter"><a href="#Jmeter" class="headerlink" title="Jmeter"></a>Jmeter</h2><p>要将性能指标从JMeter推送到InfluxDB，我们需要使用Backend Listener。<br>此侦听器允许将度量标准直接写入数据库。</p>
+<html>
+<img src="https://cdn2.hubspot.net/hubfs/208250/Blog_Images/grafana6.png" width="600" hegiht="300" align=center />
+</html>
+
+
+<p>Backend Listener 参数解释：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Backend Listener implementation - 这是一个实现类，将用作JMeter测试指标的监听器。此参数的值基于我们将要使用的协议。如果您还记得，我们使用了为InfluxDB配置指定的石墨协议配置。为此，我们需要使用&#39;GraphiteBackendListenerClient&#39;</span><br><span class="line">Async Queue size  - 队列值包含异步处理它们的度量标准。除非有一些特定的性能问题，否则最好不要将此值从默认的“5000”值更改。</span><br><span class="line">graphiteMetricsSender - 将用作度量标准发送方的实现类。只需使用默认值。</span><br><span class="line">graphiteHost - InfluxDB所在的主机</span><br><span class="line">graphitePort - 我们在InfluxDB配置文件的&#39;graphite&#39;部分中指定的端口</span><br><span class="line">rootMetricsPrefix - 将用于存储在数据库中的所有度量标准的基本前缀。请注意，指标没有默认分隔符。这就是为什么最好使用&#39;。&#39; 此属性中指定的前缀末尾的符号</span><br><span class="line">summaryOnly - 如果您只想在数据库中保留摘要结果并且不希望在测试执行期间收集所有详细指标，请使用“true”</span><br><span class="line">samplersList - 如果要仅将特定采样器发送到数据库，请使用此字段。在我们的例子中，我们想要发送所有样本，因此我们将此参数留空</span><br><span class="line">useRegexpForSamplersList - 如果要在&#39;samplersList&#39;字段中指定正则表达式以选择应发送到数据库的采样器，则输入&#39;true&#39;</span><br><span class="line">percentiles - 用于指定应发送到数据库的度量百分位数</span><br></pre></td></tr></table></figure>
+<p>一旦配置到位，我们就可以运行我们的测试执行。</p>
+<p>查看InfluxDB</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&gt; influx</span><br><span class="line">&gt; USE jmeter</span><br><span class="line">&gt; SHOW MEASUREMENTS</span><br><span class="line">&gt; SELECT * FROM &quot;jmeter.all.a.avg&quot;   &#x2F;&#x2F; 有数据则连接数据库成功</span><br></pre></td></tr></table></figure>
+
+<p>常用参数如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">名称	                           描述</span><br><span class="line">jmeter.all.h.count	        所有请求的TPS</span><br><span class="line">jmeter.&lt;请求名称&gt;.h.count	对应&lt;请求名称&gt;的TPS</span><br><span class="line">jmeter.all.ok.pct99	        99%的请求响应时间</span><br><span class="line">jmeter.&lt;请求名称&gt;.ok.pct99	对应&lt;请求名称&gt;99%的请求响应时间</span><br><span class="line">jmeter.all.test.startedT	线程数</span><br></pre></td></tr></table></figure>
+<html>
+<img src="http://git.caimi-inc.com/Platform/basic-biz-service/uploads/e38af0d2c0db0960dd546b966ea886d3/image.png" width="600" hegiht="300" align=center />
+</html>
+
+
+
+
+
+<h2 id="Grafana"><a href="#Grafana" class="headerlink" title="Grafana"></a>Grafana</h2><p>安装 Grafana</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">mac      &gt; brew install grafana</span><br><span class="line">linux    &gt; yum install https:&#x2F;&#x2F;s3-us-west-2.amazonaws.com&#x2F;grafana-releases&#x2F;release&#x2F;grafana-4.4.3-1.x86_64.rpm</span><br></pre></td></tr></table></figure>
+
+<p>启动 Grafana</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt; service grafana-server start</span><br></pre></td></tr></table></figure>
+
+<p>登录 Grafana</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">默认用3000端口  例如 本地用 http:&#x2F;&#x2F;localhost:3000</span><br><span class="line">使用“admin”作为默认用户名和密码登录</span><br></pre></td></tr></table></figure>
+
+<html>
+<img src="https://cdn2.hubspot.net/hubfs/208250/Blog_Images/grafana8.png" width="600" hegiht="300" align=center />
+</html>
+
+
+
+
+<p>首先，我们需要使用指标指定数据源。点击欢迎页面上的“Add data source”</p>
+<html>
+<img src="https://cdn2.hubspot.net/hubfs/208250/Blog_Images/grafana9.png" width="600" hegiht="300" align=center />
+</html>
+
+
+
+<p>根据我们之前的步骤进行适当的配置,然后单击“添加”按钮以验证Grafana是否可以连接到InfluxDB</p>
+<html>
+<img src="https://cdn2.hubspot.net/hubfs/208250/Blog_Images/grafana10.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/200" width="600" hegiht="300" align=center />
+</html>
+
+
+
+<p>在Grafana中创建我们的第一个仪表板。单击左上角的按钮打开Grafana菜单，然后转到Dashboards -&gt; New</p>
+<html>
+<img src="https://cdn2.hubspot.net/hubfs/208250/Blog_Images/grafana11.png" width="600" hegiht="300" align=center />
+</html>
+
+
+
+<p>Grafana从JMeter收集了InfluxDB中的数据。通过单击每行的顶部，您可以选择该行应表示的度量标准。</p>
+<html>
+<img src="http://git.caimi-inc.com/Platform/basic-biz-service/uploads/8090dc216e33e6d8fd25db715bfa7cca/image.png" width="600" hegiht="300" align=center />
+</html>
+
+
+
+
+
+<h4 id="更多Grafana操作点击这里"><a href="#更多Grafana操作点击这里" class="headerlink" title="更多Grafana操作点击这里"></a><a href="http://docs.grafana.org/guides/getting_started/" target="_blank" rel="noopener">更多Grafana操作点击这里</a></h4></section>
+    <!-- Tags START -->
+    
+    <!-- Tags END -->
+    <!-- NAV START -->
+    
+  <div class="nav-container">
+    <!-- reverse left and right to put prev and next in a more logic postition -->
+    
+      <a class="nav-left" href="/2020/12/23/MockMVC/">
+        <span class="nav-arrow">← </span>
+        
+          MockMVC
+        
+      </a>
+    
+    
+      <a class="nav-right" href="/2020/12/23/jmeter-java%E8%AF%B7%E6%B1%82-dubbo/">
+        
+          jmeter-java请求-dubbo
+        
+        <span class="nav-arrow"> →</span>
+      </a>
+    
+  </div>
+
+    <!-- NAV END -->
+    <!-- 打赏 START -->
+    
+    <!-- 打赏 END -->
+    <!-- 二维码 START -->
+    
+    <!-- 二维码 END -->
+    
+      <!-- Gitment START -->
+      <div id="comments"></div>
+      <!-- Gitment END -->
+    
+  </article>
+  <!-- Article END -->
+  <!-- Catalog START -->
+  
+  <!-- Catalog END -->
+</main>
+
+<script>
+  (function () {
+    var url = 'http://yoursite.com/2020/12/23/Jmeter压测实时监控/';
+    var banner = ''
+    if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
+      $('#article-banner').css({
+        'background-image': 'url(' + banner + ')'
+      })
+    } else {
+      $('#article-banner').geopattern(url)
+    }
+    $('.header').removeClass('fixed-header')
+
+    // error image
+    $(".markdown-content img").on('error', function() {
+      $(this).attr('src', 'http://file.muyutech.com/error-img.png')
+      $(this).css({
+        'cursor': 'default'
+      })
+    })
+
+    // zoom image
+    $(".markdown-content img").on('click', function() {
+      var src = $(this).attr('src')
+      if (src !== 'http://file.muyutech.com/error-img.png') {
+        var imageW = $(this).width()
+        var imageH = $(this).height()
+
+        var zoom = ($(window).width() * 0.95 / imageW).toFixed(2)
+        zoom = zoom < 1 ? 1 : zoom
+        zoom = zoom > 2 ? 2 : zoom
+        var transY = (($(window).height() - imageH) / 2).toFixed(2)
+
+        $('body').append('<div class="image-view-wrap"><div class="image-view-inner"><img src="'+ src +'" /></div></div>')
+        $('.image-view-wrap').addClass('wrap-active')
+        $('.image-view-wrap img').css({
+          'width': `${imageW}`,
+          'transform': `translate3d(0, ${transY}px, 0) scale3d(${zoom}, ${zoom}, 1)`
+        })
+        $('html').css('overflow', 'hidden')
+
+        $('.image-view-wrap').on('click', function() {
+          $(this).remove()
+          $('html').attr('style', '')
+        })
+      }
+    })
+  })();
+</script>
+
+
+
+
+  <script>
+    var gitmentConfig = "chufusheng";
+    if (gitmentConfig !== 'undefined') {
+      var gitment = new Gitment({
+        id: "Jmeter压测实时监控",
+        owner: "chufusheng",
+        repo: "chufusheng.github.io",
+        oauth: {
+          client_id: "9bd93c680695520eb060",
+          client_secret: "cd28053e845d1908ee4e6d17d9a510f2e841d3d5"
+        },
+        theme: {
+          render(state, instance) {
+            const container = document.createElement('div')
+            container.lang = "en-US"
+            container.className = 'gitment-container gitment-root-container'
+            container.appendChild(instance.renderHeader(state, instance))
+            container.appendChild(instance.renderEditor(state, instance))
+            container.appendChild(instance.renderComments(state, instance))
+            container.appendChild(instance.renderFooter(state, instance))
+            return container;
+          }
+        }
+      })
+      gitment.render(document.getElementById('comments'))
+    }
+  </script>
+
+<link rel="stylesheet" href="https://jjeejj.github.io/css/gitment.css">
+<script src="https://www.wenjunjiang.win/js/gitment.js"></script>
+
+
+    <div class="scroll-top">
+  <span class="arrow-icon"></span>
+</div>
+    <footer class="app-footer">
+  <!-- <p class="copyright">
+    &copy; 2020 | Proudly powered by <a href="https://hexo.io" target="_blank">Hexo</a>
+    <br>
+    Theme by <a href="https://github.com/yanm1ng" target="_blank" rel="noopener">yanm1ng</a>
+  </p> -->
+</footer>
+
+<script>
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+</script>
+<script>
+  async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+    FastClick.attach(document.body);
+  })
+</script>
+
+<script>
+  var hasLine = 'true';
+  async("//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js", function(){
+    $('figure pre').each(function(i, block) {
+      var figure = $(this).parents('figure');
+      if (hasLine === 'false') {
+        figure.find('.gutter').hide();
+      }
+      var lang = figure.attr('class').split(' ')[1] || 'code';
+      var codeHtml = $(this).html();
+      var codeTag = document.createElement('code');
+      codeTag.className = lang;
+      codeTag.innerHTML = codeHtml;
+      $(this).attr('class', '').empty().html(codeTag);
+      figure.attr('data-lang', lang.toUpperCase());
+      hljs.highlightBlock(block);
+    });
+  })
+</script>
+<!-- Baidu Tongji -->
+
+
+<script src="/js/script.js"></script>
+
+  </body>
+</html>

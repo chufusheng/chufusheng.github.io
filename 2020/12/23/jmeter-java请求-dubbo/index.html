@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <meta name="description" content="yanm1ng&#39;s blog">
+  <meta name="keyword" content="hexo-theme, vuejs">
+  
+    <link rel="shortcut icon" href="/css/images/logo.png">
+  
+  <title>
+    
+      jmeter-java请求-dubbo | ITest
+    
+  </title>
+  <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" rel="stylesheet">
+  <link href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css" rel="stylesheet">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/css/plugins/gitment.css">
+
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/geopattern/1.2.3/js/geopattern.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
+  
+  
+    
+<script src="/js/gitment.js"></script>
+
+  
+  
+  
+    <!-- MathJax support START -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <!-- MathJax support END -->
+  
+
+
+  
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="ITest" type="application/atom+xml">
+</head>
+<div class="wechat-share">
+  <img src="/css/images/logo.png" />
+</div>
+
+  <body>
+    <header class="header fixed-header">
+  <div class="header-container">
+    <a class="home-link" href="/">
+      <div class="logo"></div>
+      <span>ITest</span>
+    </a>
+    <ul class="right-list">
+      
+        <li class="list-item">
+          
+            <a href="/" class="item-link">Home</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/tags/" class="item-link">Tags</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/archives/" class="item-link">Archives</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/project/" class="item-link">Projects</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/about/" class="item-link">About</a>
+          
+        </li>
+      
+    </ul>
+    <div class="menu">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </div>
+    <div class="menu-mask">
+      <ul class="menu-list">
+        
+          <li class="menu-item">
+            
+              <a href="/" class="menu-link">Home</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/tags/" class="menu-link">Tags</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/archives/" class="menu-link">Archives</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/project/" class="menu-link">Projects</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/about/" class="menu-link">About</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</header>
+
+    <div id="article-banner">
+  <h2>jmeter-java请求-dubbo</h2>
+  <p class="post-date">2020-12-23</p>
+  <div class="arrow-down">
+    <a href="javascript:;"></a>
+  </div>
+</div>
+<main class="app-body flex-box">
+  <!-- Article START -->
+  <article class="post-article">
+    <section class="markdown-content"><h1 id="dubbo-接口压力测试脚本编写"><a href="#dubbo-接口压力测试脚本编写" class="headerlink" title="dubbo 接口压力测试脚本编写"></a>dubbo 接口压力测试脚本编写</h1><h2 id="一、创建maven工程"><a href="#一、创建maven工程" class="headerlink" title="一、创建maven工程"></a>一、创建maven工程</h2><blockquote>
+<p>pom.xml里导入jmeter依赖及相应服务的依赖</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.apache.jmeter&lt;&#x2F;groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;ApacheJMeter_java&lt;&#x2F;artifactId&gt;</span><br><span class="line">    &lt;version&gt;4.0&lt;&#x2F;version&gt;</span><br><span class="line">&lt;&#x2F;dependency&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.apache.jmeter&lt;&#x2F;groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;ApacheJMeter_core&lt;&#x2F;artifactId&gt;</span><br><span class="line">    &lt;version&gt;4.0&lt;&#x2F;version&gt;</span><br><span class="line">&lt;&#x2F;dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="二、编写dubbo连接class-DubboSampleClient"><a href="#二、编写dubbo连接class-DubboSampleClient" class="headerlink" title="二、编写dubbo连接class DubboSampleClient"></a>二、编写dubbo连接class DubboSampleClient</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br></pre></td><td class="code"><pre><span class="line">package dubbo;</span><br><span class="line"></span><br><span class="line">import com.alibaba.dubbo.config.ApplicationConfig;</span><br><span class="line">import com.alibaba.dubbo.config.ReferenceConfig;</span><br><span class="line">import com.alibaba.dubbo.config.RegistryConfig;</span><br><span class="line">import com.alibaba.dubbo.config.utils.ReferenceConfigCache;</span><br><span class="line">import com.alibaba.fastjson.JSON;</span><br><span class="line">import org.apache.jmeter.config.Arguments;</span><br><span class="line">import org.apache.jmeter.protocol.java.sampler.AbstractJavaSamplerClient;</span><br><span class="line">import org.apache.jmeter.protocol.java.sampler.JavaSamplerContext;</span><br><span class="line">import org.apache.jmeter.samplers.SampleResult;</span><br><span class="line">import org.apache.log4j.Logger;</span><br><span class="line"></span><br><span class="line">import java.lang.reflect.ParameterizedType;</span><br><span class="line">import java.lang.reflect.Type;</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line"> * 基类 Created by binli on 2015-12-15.</span><br><span class="line"> *&#x2F;</span><br><span class="line">public abstract class DubboSampleClient&lt;T&gt; extends AbstractJavaSamplerClient &#123;</span><br><span class="line">	private static Logger logger &#x3D; Logger.getLogger(DubboSampleClient.class);</span><br><span class="line">	&#x2F;**</span><br><span class="line">	 * privider实例</span><br><span class="line">	 *&#x2F;</span><br><span class="line">	private T instance;</span><br><span class="line"></span><br><span class="line">	&#x2F;**</span><br><span class="line">	 *</span><br><span class="line">	 * @return</span><br><span class="line">	 *&#x2F;</span><br><span class="line">	protected String getInterfaceName() &#123;</span><br><span class="line">		String interfaceName &#x3D; getSuperClassGenricType(getClass(), 0).getName();</span><br><span class="line">		System.out.println(interfaceName);</span><br><span class="line">		return interfaceName;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	&#x2F;**</span><br><span class="line">	 * 拿到provider的实例</span><br><span class="line">	 * </span><br><span class="line">	 * @return</span><br><span class="line">	 *&#x2F;</span><br><span class="line">	protected T getInstance() &#123;</span><br><span class="line">		return instance;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	&#x2F;**</span><br><span class="line">	 * 初始化test</span><br><span class="line">	 * </span><br><span class="line">	 * @param context</span><br><span class="line">	 *&#x2F;</span><br><span class="line">	@Override</span><br><span class="line">	public void setupTest(JavaSamplerContext context) &#123;</span><br><span class="line">		super.setupTest(context);</span><br><span class="line">		&#x2F;&#x2F; 当前应用配置</span><br><span class="line">		ApplicationConfig application &#x3D; new ApplicationConfig();</span><br><span class="line">		application.setName(context.getParameter(&quot;consumerName1&quot;, &quot;jmeter-dubbo-test1&quot;));</span><br><span class="line"></span><br><span class="line">		&#x2F;&#x2F; 连接注册中心配置</span><br><span class="line">		RegistryConfig registry &#x3D; new RegistryConfig();</span><br><span class="line">		registry.setAddress(context.getParameter(&quot;zkAddress&quot;,</span><br><span class="line">				&quot;zktestserver1.wacai.info:22181,zktestserver2.wacai.info:22181,zktestserver3.wacai.info:22181&quot;));</span><br><span class="line">		registry.setGroup(context.getParameter(&quot;dubboGroup&quot;, &quot;dubbo_test&quot;));</span><br><span class="line">		registry.setProtocol(&quot;zookeeper&quot;);</span><br><span class="line">		registry.setClient(&quot;zkclient&quot;);</span><br><span class="line"></span><br><span class="line">		&#x2F;**</span><br><span class="line">		 * 注意：ReferenceConfig为重对象，内部封装了与注册中心的连接，以及与服务提供方的连接</span><br><span class="line">		 * 此实例很重，封装了与注册中心的连接以及与提供者的连接，请自行缓存，否则可能造成内存和连接泄漏</span><br><span class="line">		 *&#x2F;</span><br><span class="line">		ReferenceConfig&lt;T&gt; reference &#x3D; new ReferenceConfig&lt;T&gt;(); reference.setApplication(application);</span><br><span class="line">		&#x2F;**</span><br><span class="line">		 * 多个注册中心可以用setRegistries()</span><br><span class="line">		 * *&#x2F;</span><br><span class="line"></span><br><span class="line">		reference.setRegistry(registry);</span><br><span class="line">		reference.setInterface(getInterfaceName());</span><br><span class="line">		reference.setTimeout(50000);</span><br><span class="line">		reference.setUrl(context.getParameter(&quot;url&quot;));</span><br><span class="line">		String version &#x3D; context.getParameter(&quot;version&quot;);</span><br><span class="line">		if(null!&#x3D;version&amp;&amp;!&quot;&quot;.equals(version))&#123;</span><br><span class="line">			reference.setVersion(&quot;3.0&quot;);</span><br><span class="line">		&#125;</span><br><span class="line">		String zkAddress &#x3D; context.getParameter(&quot;zkAddress&quot;);</span><br><span class="line">		if (null !&#x3D; zkAddress) &#123;</span><br><span class="line">			if (zkAddress.startsWith(&quot;dubbo&quot;)) &#123;</span><br><span class="line">				reference.setUrl(context.getParameter(&quot;zkAddress&quot;));</span><br><span class="line">			&#125;</span><br><span class="line">			ReferenceConfigCache cache &#x3D; ReferenceConfigCache.getCache();</span><br><span class="line">			instance &#x3D; cache.get(reference);</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	&#x2F;**</span><br><span class="line">	 * 返回给jmeter默认可设置的参数</span><br><span class="line">	 * </span><br><span class="line">	 * @return</span><br><span class="line">	 *&#x2F;</span><br><span class="line">	@Override</span><br><span class="line">	public Arguments getDefaultParameters() &#123;</span><br><span class="line">		Arguments args &#x3D; new Arguments();</span><br><span class="line">		args.addArgument(&quot;consumerName&quot;, &quot;jmeter-dubbo-test&quot;);</span><br><span class="line">		args.addArgument(&quot;dubboGroup&quot;, &quot;dubbo_test&quot;);</span><br><span class="line">		args.addArgument(&quot;url&quot;, &quot;&quot;);</span><br><span class="line">		args.addArgument(&quot;zkAddress&quot;,</span><br><span class="line">				&quot;zktestserver1.wacai.info:22181,zktestserver2.wacai.info:22181,zktestserver3.wacai.info:22181&quot;);</span><br><span class="line">		return args;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	&#x2F;**</span><br><span class="line">	 * 获得泛型</span><br><span class="line">	 * </span><br><span class="line">	 * @param clazz</span><br><span class="line">	 * @param index</span><br><span class="line">	 * @return</span><br><span class="line">	 *&#x2F;</span><br><span class="line">	private Class&lt;Object&gt; getSuperClassGenricType(final Class clazz, final int index) &#123;</span><br><span class="line"></span><br><span class="line">		Type genType &#x3D; clazz.getGenericSuperclass();</span><br><span class="line"></span><br><span class="line">		if (!(genType instanceof ParameterizedType)) &#123;</span><br><span class="line">			return Object.class;</span><br><span class="line">		&#125;</span><br><span class="line">		Type[] params &#x3D; ((ParameterizedType) genType).getActualTypeArguments();</span><br><span class="line"></span><br><span class="line">		if (index &gt;&#x3D; params.length || index &lt; 0) &#123;</span><br><span class="line">			return Object.class;</span><br><span class="line">		&#125;</span><br><span class="line">		if (!(params[index] instanceof Class)) &#123;</span><br><span class="line">			return Object.class;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		return (Class) params[index];</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	public SampleResult sampleRun(JavaSamplerContext jsc, Action a) &#123;</span><br><span class="line">		SampleResult result &#x3D; new SampleResult();</span><br><span class="line">		result.sampleStart(); &#x2F;&#x2F; start stopwatch</span><br><span class="line">		Object res &#x3D; null;</span><br><span class="line">		try &#123;</span><br><span class="line">			res &#x3D; a.preform();</span><br><span class="line">		&#125; catch (Exception e) &#123;</span><br><span class="line">			&#x2F;&#x2F; e.printStackTrace();</span><br><span class="line">			logger.error(e.getMessage());</span><br><span class="line">		&#125;</span><br><span class="line">		System.out.println(JSON.toJSON(res));</span><br><span class="line">		logger.info(&quot;res-----:&quot;+JSON.toJSON(res));</span><br><span class="line">		if (null !&#x3D; res) &#123;</span><br><span class="line">			result.sampleEnd(); &#x2F;&#x2F; stop stopwatch</span><br><span class="line">			result.setSuccessful(true);</span><br><span class="line">			result.setResponseData(JSON.toJSONString(res), &quot;utf-8&quot;);</span><br><span class="line">			result.setResponseMessage(JSON.toJSONString(res));</span><br><span class="line">			result.setResponseCodeOK(); &#x2F;&#x2F; 200 code</span><br><span class="line">		&#125; else &#123;</span><br><span class="line">			result.sampleEnd(); &#x2F;&#x2F; stop stopwatch</span><br><span class="line">			result.setSuccessful(false);</span><br><span class="line">		&#125;</span><br><span class="line">		return result;</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	&#x2F;**</span><br><span class="line">	 * The Action Class is for making the Demo View Custom Code</span><br><span class="line">	 *&#x2F;</span><br><span class="line">	public interface Action &#123;</span><br><span class="line">		public Object preform();</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>DubboSampleClient 类对dubbo连接做了封装  dubbo参数要在这里配置，此类在测试项目中有介绍，这里不过多描述。</p>
+</blockquote>
+<h2 id="三、编写测试class"><a href="#三、编写测试class" class="headerlink" title="三、编写测试class"></a>三、编写测试class</h2><blockquote>
+<p>public class PushByPushIdTest extends DubboSampleClient<PushService>{方法体} 该类必须继承DubboSampleClient（）</p>
+</blockquote>
+<ul>
+<li>1、编写界面参数  命名固定为getDefaultParameters（）方法<blockquote>
+<p>参数类型全部为string类型，如果后面要用其他类型参数传入，此时需要转换。</p>
+</blockquote>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"> public Arguments getDefaultParameters() &#123;</span><br><span class="line">    Arguments args &#x3D;  super.getDefaultParameters();</span><br><span class="line">    &#x2F;&#x2F;此处请添加你们需要动态变化的参数</span><br><span class="line">    args.addArgument(&quot;pushId&quot;, &quot;abde7537e79039b72cea2e340ecdeb10&quot;);</span><br><span class="line">    args.addArgument(&quot;content&quot;,&quot;byPushId 压力测试&quot;);</span><br><span class="line">    args.addArgument(&quot;url&quot;,&quot;&quot;);</span><br><span class="line">    return args;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>2、编写数据处理逻辑  <blockquote>
+<p>命名固定为runTest(JavaSamplerContext jsc)方法 并且要有类型为SampleResult返回值。</p>
+</blockquote>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">public SampleResult  runTest(JavaSamplerContext jsc) &#123;</span><br><span class="line">        SampleResult sr &#x3D; new SampleResult();</span><br><span class="line">        return super.sampleRun(jsc, ()-&gt;&#123;</span><br><span class="line">            try &#123;</span><br><span class="line">                &#x2F;Sample 开始   记录开始时间</span><br><span class="line">                sr.sampleStart();</span><br><span class="line">                RequestParam requestParam &#x3D; new RequestParam();</span><br><span class="line">                requestParam.setAppName(&quot;wcb&quot;);</span><br><span class="line">                requestParam.setExpiredTime(1L);</span><br><span class="line">                String plat &#x3D; jsc.getParameter(&quot;platforms&quot;);</span><br><span class="line">                &#x2F;将传入的string类型转成list</span><br><span class="line">                List&lt;Integer&gt; listplat &#x3D; Arrays.asList(plat.split(&quot;,&quot;))</span><br><span class="line">                        .stream().map(s -&gt; Integer.parseInt(s.trim()))</span><br><span class="line">                        .collect(Collectors.toList());</span><br><span class="line">                requestParam.setPlatforms(listplat);</span><br><span class="line">                requestParam.setPushId(jsc.getParameter(&quot;pushId&quot;));</span><br><span class="line">                requestParam.setContent(jsc.getParameter(&quot;content&quot;));</span><br><span class="line">                int mt &#x3D; requestParam.setMsgType(mt);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">                Response&lt;ErrorCode&gt; result &#x3D; getInstance().pushByPushId(requestParam);</span><br><span class="line">                sr.setSamplerData(result.getValue().getReason());</span><br><span class="line">                sr.setSuccessful(true);</span><br><span class="line"></span><br><span class="line">            &#125;catch (Exception e)&#123;</span><br><span class="line">                sr.getResponseData();</span><br><span class="line">                sr.setSuccessful(false);</span><br><span class="line">                e.printStackTrace();</span><br><span class="line"></span><br><span class="line">            &#125;finally &#123;</span><br><span class="line">                sr.sampleEnd();</span><br><span class="line">            &#125;</span><br><span class="line">            return sr;</span><br><span class="line"></span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="四、main函数检查可行性（压测中此方法不是必要条件，主要用来检测）"><a href="#四、main函数检查可行性（压测中此方法不是必要条件，主要用来检测）" class="headerlink" title="四、main函数检查可行性（压测中此方法不是必要条件，主要用来检测）"></a>四、main函数检查可行性（压测中此方法不是必要条件，主要用来检测）</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String args[]) &#123;</span><br><span class="line">       Arguments argss &#x3D; new Arguments();</span><br><span class="line">       argss.addArgument(&quot;pushId&quot;, &quot;abde7537e79039b72cea2e340ecdeb10&quot;);</span><br><span class="line">       argss.addArgument(&quot;content&quot;,&quot;byPushId 压力测试&quot;);</span><br><span class="line">       argss.addArgument(&quot;url&quot;,&quot;www.baidu.com&quot;);</span><br><span class="line">       argss.addArgument(&quot;title&quot;,&quot;title 测试&quot;);</span><br><span class="line">       argss.addArgument(&quot;platforms&quot;,&quot;41&quot;);</span><br><span class="line">       argss.addArgument(&quot;msgType&quot;,&quot;1&quot;);</span><br><span class="line">       argss.addArgument(&quot;zkAddress&quot;,</span><br><span class="line">               &quot;zktestserver1.wacai.info:22181,zktestserver2.wacai.info:22181,zktestserver3.wacai.info:22181&quot;);</span><br><span class="line">       JavaSamplerContext jsc &#x3D; new JavaSamplerContext(argss);</span><br><span class="line">       PushByPushIdTest bqe &#x3D; new PushByPushIdTest();</span><br><span class="line">       bqe.setupTest(jsc);</span><br><span class="line">       bqe.runTest(jsc);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="五、jar包导入"><a href="#五、jar包导入" class="headerlink" title="五、jar包导入"></a>五、jar包导入</h2><ul>
+<li>1、打成jar包 ,将打好的项目jar包放在jmeter/lib/ext下。</li>
+<li>2、执行mvn dependency:copy-dependencies下载工程依赖包，targer/dependecies   目录下为所以依赖包，<br>完成后将依赖包全部放在jmeter/lib下 ， 不得和lib已有的包冲突  ，如果冲突，删除所以已有jar包，然后放入所以依赖包。</li>
+<li>3、启动jmeter,   在java请求中理论会有包里的测试class, 没有则检查包及代码。</li>
+</ul>
+<h2 id="测试项目"><a href="#测试项目" class="headerlink" title="测试项目"></a>测试项目</h2><p>此项目只参考去编写，不要使用本项目进行压测</p>
+<blockquote>
+<p><a href="mailto:git@git.caimi-inc.com">git@git.caimi-inc.com</a>:qiuhaitang/jmeterdubbotest.git</p>
+</blockquote>
+</section>
+    <!-- Tags START -->
+    
+    <!-- Tags END -->
+    <!-- NAV START -->
+    
+  <div class="nav-container">
+    <!-- reverse left and right to put prev and next in a more logic postition -->
+    
+      <a class="nav-left" href="/2020/12/23/Jmeter%E5%8E%8B%E6%B5%8B%E5%AE%9E%E6%97%B6%E7%9B%91%E6%8E%A7/">
+        <span class="nav-arrow">← </span>
+        
+          Jmeter压测实时监控
+        
+      </a>
+    
+    
+      <a class="nav-right" href="/2020/12/23/hello-world/">
+        
+          Hello World
+        
+        <span class="nav-arrow"> →</span>
+      </a>
+    
+  </div>
+
+    <!-- NAV END -->
+    <!-- 打赏 START -->
+    
+    <!-- 打赏 END -->
+    <!-- 二维码 START -->
+    
+    <!-- 二维码 END -->
+    
+      <!-- Gitment START -->
+      <div id="comments"></div>
+      <!-- Gitment END -->
+    
+  </article>
+  <!-- Article END -->
+  <!-- Catalog START -->
+  
+  <!-- Catalog END -->
+</main>
+
+<script>
+  (function () {
+    var url = 'http://yoursite.com/2020/12/23/jmeter-java请求-dubbo/';
+    var banner = ''
+    if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
+      $('#article-banner').css({
+        'background-image': 'url(' + banner + ')'
+      })
+    } else {
+      $('#article-banner').geopattern(url)
+    }
+    $('.header').removeClass('fixed-header')
+
+    // error image
+    $(".markdown-content img").on('error', function() {
+      $(this).attr('src', 'http://file.muyutech.com/error-img.png')
+      $(this).css({
+        'cursor': 'default'
+      })
+    })
+
+    // zoom image
+    $(".markdown-content img").on('click', function() {
+      var src = $(this).attr('src')
+      if (src !== 'http://file.muyutech.com/error-img.png') {
+        var imageW = $(this).width()
+        var imageH = $(this).height()
+
+        var zoom = ($(window).width() * 0.95 / imageW).toFixed(2)
+        zoom = zoom < 1 ? 1 : zoom
+        zoom = zoom > 2 ? 2 : zoom
+        var transY = (($(window).height() - imageH) / 2).toFixed(2)
+
+        $('body').append('<div class="image-view-wrap"><div class="image-view-inner"><img src="'+ src +'" /></div></div>')
+        $('.image-view-wrap').addClass('wrap-active')
+        $('.image-view-wrap img').css({
+          'width': `${imageW}`,
+          'transform': `translate3d(0, ${transY}px, 0) scale3d(${zoom}, ${zoom}, 1)`
+        })
+        $('html').css('overflow', 'hidden')
+
+        $('.image-view-wrap').on('click', function() {
+          $(this).remove()
+          $('html').attr('style', '')
+        })
+      }
+    })
+  })();
+</script>
+
+
+
+
+  <script>
+    var gitmentConfig = "chufusheng";
+    if (gitmentConfig !== 'undefined') {
+      var gitment = new Gitment({
+        id: "jmeter-java请求-dubbo",
+        owner: "chufusheng",
+        repo: "chufusheng.github.io",
+        oauth: {
+          client_id: "9bd93c680695520eb060",
+          client_secret: "cd28053e845d1908ee4e6d17d9a510f2e841d3d5"
+        },
+        theme: {
+          render(state, instance) {
+            const container = document.createElement('div')
+            container.lang = "en-US"
+            container.className = 'gitment-container gitment-root-container'
+            container.appendChild(instance.renderHeader(state, instance))
+            container.appendChild(instance.renderEditor(state, instance))
+            container.appendChild(instance.renderComments(state, instance))
+            container.appendChild(instance.renderFooter(state, instance))
+            return container;
+          }
+        }
+      })
+      gitment.render(document.getElementById('comments'))
+    }
+  </script>
+
+<link rel="stylesheet" href="https://jjeejj.github.io/css/gitment.css">
+<script src="https://www.wenjunjiang.win/js/gitment.js"></script>
+
+
+    <div class="scroll-top">
+  <span class="arrow-icon"></span>
+</div>
+    <footer class="app-footer">
+  <!-- <p class="copyright">
+    &copy; 2020 | Proudly powered by <a href="https://hexo.io" target="_blank">Hexo</a>
+    <br>
+    Theme by <a href="https://github.com/yanm1ng" target="_blank" rel="noopener">yanm1ng</a>
+  </p> -->
+</footer>
+
+<script>
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+</script>
+<script>
+  async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+    FastClick.attach(document.body);
+  })
+</script>
+
+<script>
+  var hasLine = 'true';
+  async("//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js", function(){
+    $('figure pre').each(function(i, block) {
+      var figure = $(this).parents('figure');
+      if (hasLine === 'false') {
+        figure.find('.gutter').hide();
+      }
+      var lang = figure.attr('class').split(' ')[1] || 'code';
+      var codeHtml = $(this).html();
+      var codeTag = document.createElement('code');
+      codeTag.className = lang;
+      codeTag.innerHTML = codeHtml;
+      $(this).attr('class', '').empty().html(codeTag);
+      figure.attr('data-lang', lang.toUpperCase());
+      hljs.highlightBlock(block);
+    });
+  })
+</script>
+<!-- Baidu Tongji -->
+
+
+<script src="/js/script.js"></script>
+
+  </body>
+</html>

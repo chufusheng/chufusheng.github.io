@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <meta name="description" content="yanm1ng&#39;s blog">
+  <meta name="keyword" content="hexo-theme, vuejs">
+  
+    <link rel="shortcut icon" href="/css/images/logo.png">
+  
+  <title>
+    
+      MockMVC | ITest
+    
+  </title>
+  <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" rel="stylesheet">
+  <link href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css" rel="stylesheet">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/css/plugins/gitment.css">
+
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/geopattern/1.2.3/js/geopattern.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
+  
+  
+    
+<script src="/js/gitment.js"></script>
+
+  
+  
+  
+    <!-- MathJax support START -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <!-- MathJax support END -->
+  
+
+
+  
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="ITest" type="application/atom+xml">
+</head>
+<div class="wechat-share">
+  <img src="/css/images/logo.png" />
+</div>
+
+  <body>
+    <header class="header fixed-header">
+  <div class="header-container">
+    <a class="home-link" href="/">
+      <div class="logo"></div>
+      <span>ITest</span>
+    </a>
+    <ul class="right-list">
+      
+        <li class="list-item">
+          
+            <a href="/" class="item-link">Home</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/tags/" class="item-link">Tags</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/archives/" class="item-link">Archives</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/project/" class="item-link">Projects</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/about/" class="item-link">About</a>
+          
+        </li>
+      
+    </ul>
+    <div class="menu">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </div>
+    <div class="menu-mask">
+      <ul class="menu-list">
+        
+          <li class="menu-item">
+            
+              <a href="/" class="menu-link">Home</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/tags/" class="menu-link">Tags</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/archives/" class="menu-link">Archives</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/project/" class="menu-link">Projects</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/about/" class="menu-link">About</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</header>
+
+    <div id="article-banner">
+  <h2>MockMVC</h2>
+  <p class="post-date">2020-12-23</p>
+  <div class="arrow-down">
+    <a href="javascript:;"></a>
+  </div>
+</div>
+<main class="app-body flex-box">
+  <!-- Article START -->
+  <article class="post-article">
+    <section class="markdown-content"><h3 id="MockMVC"><a href="#MockMVC" class="headerlink" title="MockMVC"></a>MockMVC</h3><blockquote>
+<p>基于RESTful风格的SpringMVC的测试</p>
+</blockquote>
+<p>对于前后端分离的项目而言，无法直接从前端静态代码中测试接口的正确性，因此可以通过MockMVC来模拟HTTP请求。基于RESTful风格的SpringMVC的测试，我们可以测试完整的Spring MVC流程，即从URL请求到控制器处理，再到视图渲染都可以测试。</p>
+<h5 id="入门示例"><a href="#入门示例" class="headerlink" title="入门示例"></a>入门示例</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RunWith</span>(SpringRunner<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class">    @<span class="title">SpringBootTest</span></span></span><br><span class="line"><span class="class">    @<span class="title">AutoConfigureMockMvc</span></span></span><br><span class="line"><span class="class">    <span class="title">public</span> <span class="title">class</span> <span class="title">CourseControllerTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Autowired</span></span><br><span class="line">        <span class="keyword">private</span> MockMvc mockMvc;</span><br><span class="line">        </span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">helloTest</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line">            mockMvc.perform(</span><br><span class="line">                    <span class="comment">//构造一个post请求</span></span><br><span class="line">                    MockMvcRequestBuilders.post(<span class="string">"/hello"</span>)</span><br><span class="line">                    .contentType(MediaType.APPLICATION_JSON_UTF8)</span><br><span class="line">            <span class="comment">//andExpect，添加ResultMathcers验证规则，验证控制器执行完成后结果是否正确，【这是一个断言】</span></span><br><span class="line">            .andExpect(MockMvcResultMatchers.status().is(<span class="number">200</span>))</span><br><span class="line">            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_UTF8))</span><br><span class="line">            <span class="comment">//假定返回的结果中，期望为hello，并给出期望值和实际值</span></span><br><span class="line">            .andExpect(MockMvcResultMatchers.content().string(<span class="string">"hello"</span>))</span><br><span class="line">            <span class="comment">//添加ResultHandler结果处理器，比如调试时 打印结果(print方法)到控制台</span></span><br><span class="line">            .andDo(print())</span><br><span class="line">            <span class="comment">//返回相应的MvcResult</span></span><br><span class="line">            .andReturn();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="MockMvcBuilder"><a href="#MockMvcBuilder" class="headerlink" title="MockMvcBuilder"></a>MockMvcBuilder</h4><p>MockMvcBuilder是用来构造MockMvc的构造器，其主要有两个实现：StandaloneMockMvcBuilder和DefaultMockMvcBuilder，分别对应两种测试方式，即独立安装和集成Web环境测试（此种方式并不会集成真正的web环境，而是通过相应的Mock API进行模拟测试，无须启动服务器）。对于我们来说直接使用静态工厂MockMvcBuilders创建即可。</p>
+<h5 id="集成web环境方式"><a href="#集成web环境方式" class="headerlink" title="集成web环境方式"></a>集成web环境方式</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">public class MockMvcTest &#123;</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private WebApplicationContext webApplicationContext;</span><br><span class="line">    private MockMvc mockMvc;</span><br><span class="line"></span><br><span class="line">    @Before</span><br><span class="line">    public void setUp() &#123;</span><br><span class="line">        this.mockMvc &#x3D; MockMvcBuilders.webAppContextSetup(this.webApplicationContext).build();   &#x2F;&#x2F;构造MockMvc</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Test</span><br><span class="line">    public void courseListTest() throws Exception&#123;</span><br><span class="line">        MvcResult name&#x3D; mockMvc.perform(MockMvcRequestBuilders.get(&quot;&#x2F;hello&quot;))</span><br><span class="line">                .andExpect(status().isOk())</span><br><span class="line">                .andExpect(MockMvcResultMatchers.content().string(&quot;hello&quot;))</span><br><span class="line">                .andDo(print())</span><br><span class="line">                .andReturn();</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="独立测试方式"><a href="#独立测试方式" class="headerlink" title="独立测试方式"></a>独立测试方式</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">MockMvcBuilders.standaloneSetup(Object... controllers)：通过参数指定一组控制器，这样就不需要从上下文获取了；</span><br><span class="line">public class PricingExportResultsRestServiceTest &#123;</span><br><span class="line">    @InjectMocks</span><br><span class="line">    private PricingExportResultsRestService pricingExportResultsRestService;</span><br><span class="line">    @Mock</span><br><span class="line">    private ExportRateScheduleService exportRateScheduleService;</span><br><span class="line">    @Mock</span><br><span class="line">    private PricingUrlProvider pricingUrlProvider;</span><br><span class="line">    private MockMvc mockMvc;</span><br><span class="line">    @Before</span><br><span class="line">    public void setup() &#123;</span><br><span class="line">        MockitoAnnotations.initMocks(this);</span><br><span class="line">        mockMvc &#x3D; MockMvcBuilders.standaloneSetup(pricingExportResultsRestService).build();  &#x2F;&#x2F;构造MockMvc</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="主要是两个步骤："><a href="#主要是两个步骤：" class="headerlink" title="主要是两个步骤："></a>主要是两个步骤：</h5><ul>
+<li>(1)首先自己创建相应的控制器，注入相应的依赖</li>
+<li>(2)通过MockMvcBuilders.standaloneSetup模拟一个Mvc测试环境，通过build得到一个MockMvc</li>
+</ul>
+<h4 id="MockMvc使用规范："><a href="#MockMvc使用规范：" class="headerlink" title="MockMvc使用规范："></a>MockMvc使用规范：</h4><ul>
+<li><p>准备测试环境</p>
+</li>
+<li><p>通过MockMvc执行请求</p>
+</li>
+<li><p>添加验证断言</p>
+</li>
+<li><p>添加结果处理器</p>
+</li>
+<li><p>得到MvcResult进行自定义断言/进行下一步的异步请求</p>
+</li>
+<li><p>卸载测试环境</p>
+<h4 id="常用的API："><a href="#常用的API：" class="headerlink" title="常用的API："></a>常用的API：</h4></li>
+<li><p>mockMvc.perform : 执行一个请求；</p>
+</li>
+<li><p>MockMvcRequestBuilders.get(“/user/1”) : 构造一个请求</p>
+</li>
+<li><p>ResultActions.andExpect : 添加执行完成后的断言</p>
+</li>
+<li><p>ResultActions.andDo : 添加一个结果处理器，表示要对结果做点什么事情，比如此处使用print()输出整个响应结果信息。</p>
+</li>
+<li><p>ResultActions.andReturn : 表示执行完成后返回相应的结果，通过MvcResult接收响应数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">@Test</span><br><span class="line">public void courseListTest() throws Exception&#123;</span><br><span class="line">    MvcResult mvcResult&#x3D; mockMvc.perform(MockMvcRequestBuilders.get(&quot;&#x2F;hello&quot;))</span><br><span class="line">            .andExpect(status().isOk())</span><br><span class="line">            .andExpect(MockMvcResultMatchers.content().string(&quot;hello&quot;))</span><br><span class="line">            .andDo(print())</span><br><span class="line">            .andReturn();</span><br><span class="line">            </span><br><span class="line">    System.out.println(mvcResult.getResponse().getContentAsString());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ul>
+<h5 id="RequestBuilder"><a href="#RequestBuilder" class="headerlink" title="RequestBuilder"></a>RequestBuilder</h5><blockquote>
+<p>从名字可以看出，RequestBuilder用来构建请求的，其提供了一个方法buildRequest(ServletContext servletContext)用于构建MockHttpServletRequest；<br>其主要有两个子类, 即用来Mock客户端请求需要的所有数据。<br>MockHttpServletRequestBuilder<br>MockMultipartHttpServletRequestBuilder（如文件上传使用）<br>通过抽象类MockMvcRequestBuilders提供方法生成MockHttpServletRequestBuilder<br>MockMvcRequestBuilders提供的API<br>MockHttpServletRequestBuilder get(String urlTemplate, Object… urlVariables)：根据uri模板和uri变量值得到一个GET请求方式的MockHttpServletRequestBuilder；</p>
+</blockquote>
+<ul>
+<li><p>如get(/user/{id}, 1L)；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder post(String urlTemplate, Object… urlVariables)：同get类似，但是是POST方法；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder put(String urlTemplate, Object… urlVariables)：同get类似，但是是PUT方法；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder delete(String urlTemplate, Object… urlVariables) ：同get类似，但是是DELETE方法；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder options(String urlTemplate, Object… urlVariables)：同get类似，但是是OPTIONS方法；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder request(HttpMethod httpMethod, String urlTemplate, Object… urlVariables)： 提供自己的Http请求方法及uri模板和uri变量，如上API都是委托给这个API；</p>
+</li>
+<li><p>MockMultipartHttpServletRequestBuilder fileUpload(String urlTemplate, Object… urlVariables)：提供文件上传方式的请求，得到MockMultipartHttpServletRequestBuilder；</p>
+</li>
+<li><p>RequestBuilder asyncDispatch(final MvcResult mvcResult)：创建一个从启动异步处理的请求的MvcResult进行异步分派的RequestBuilder；</p>
+</li>
+</ul>
+<h5 id="MockHttpServletRequestBuilder提供的API"><a href="#MockHttpServletRequestBuilder提供的API" class="headerlink" title="MockHttpServletRequestBuilder提供的API"></a>MockHttpServletRequestBuilder提供的API</h5><ul>
+<li><p>MockHttpServletRequestBuilder header(String name, Object… values)/MockHttpServletRequestBuilder headers(HttpHeaders httpHeaders)：添加头信息；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder contentType(MediaType mediaType)：指定请求的contentType头信息；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder accept(MediaType… mediaTypes)/MockHttpServletRequestBuilder accept(String… mediaTypes)：指定请求的Accept头信息；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder content(byte[] content)/MockHttpServletRequestBuilder content(String content)：指定请求Body体内容；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder cookie(Cookie… cookies)：指定请求的Cookie；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder locale(Locale locale)：指定请求的Locale；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder characterEncoding(String encoding)：指定请求字符编码；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder requestAttr(String name, Object value) ：设置请求属性数据；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder sessionAttr(String name, Object value)/MockHttpServletRequestBuilder sessionAttrs(Map&lt;string, object=””&gt; sessionAttributes)：设置请求session属性数据；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder flashAttr(String name, Object value)/MockHttpServletRequestBuilder flashAttrs(Map&lt;string, object=””&gt; flashAttributes)：指定请求的flash信息，比如重定向后的属性信息；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder session(MockHttpSession session) ：指定请求的Session；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder principal(Principal principal) ：指定请求的Principal；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder contextPath(String contextPath) ：指定请求的上下文路径，必须以“/”开头，且不能以“/”结尾；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder pathInfo(String pathInfo) ：请求的路径信息，必须以“/”开头；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder secure(boolean secure)：请求是否使用安全通道；</p>
+</li>
+<li><p>MockHttpServletRequestBuilder with(RequestPostProcessor postProcessor)：请求的后处理器，用于自定义一些请求处理的扩展点；</p>
+</li>
+</ul>
+<h5 id="MockMultipartHttpServletRequestBuilder提供的API"><a href="#MockMultipartHttpServletRequestBuilder提供的API" class="headerlink" title="MockMultipartHttpServletRequestBuilder提供的API"></a>MockMultipartHttpServletRequestBuilder提供的API</h5><ul>
+<li><p>继承自MockHttpServletRequestBuilder，又提供了如下API<br>MockMultipartHttpServletRequestBuilder file(String name, byte[] content)/MockMultipartHttpServletRequestBuilder file(MockMultipartFile file) //指定要上传的文件；</p>
+</li>
+<li><p>ResultActions<br>调用MockMvc.perform(RequestBuilder requestBuilder)后将得到ResultActions<br>ResultActions提供了如下API</p>
+</li>
+<li><p>ResultActions andExpect(ResultMatcher matcher) // 添加验证断言来判断执行请求后的结果是否是预期的；<br>ResultActions andDo(ResultHandler handler) // 添加结果处理器，用于对验证成功后执行的动作，如输出下请求/结果信息用于调试；<br>MvcResult andReturn() // 返回验证成功后的MvcResult；用于自定义验证/下一步的异步处理；</p>
+</li>
+</ul>
+<h5 id="ResultMatcher-验证器"><a href="#ResultMatcher-验证器" class="headerlink" title="ResultMatcher 验证器"></a>ResultMatcher 验证器</h5><p>ResultMatcher用来匹配执行完请求后的结果验证，其就一个match(MvcResult result)断言方法，如果匹配失败将抛出相应的异常；spring mvc测试框架提供了很多<strong><em>ResultMatchers来满足测试需求。注意这些</em></strong>ResultMatchers并不是ResultMatcher的子类，而是返回ResultMatcher实例的。Spring mvc测试框架为了测试方便提供了MockMvcResultMatchers静态工厂方法方便操作；</p>
+<h5 id="MockMvcResultMatchers提供的API"><a href="#MockMvcResultMatchers提供的API" class="headerlink" title="MockMvcResultMatchers提供的API"></a>MockMvcResultMatchers提供的API</h5><ul>
+<li><p>andlerResultMatchers handler()：请求的Handler验证器，比如验证处理器类型/方法名；此处的Handler其实就是处理请求的控制器；</p>
+</li>
+<li><p>RequestResultMatchers request()：得到RequestResultMatchers验证器；</p>
+</li>
+<li><p>ModelResultMatchers model()：得到模型验证器；</p>
+</li>
+<li><p>ViewResultMatchers view()：得到视图验证器；</p>
+</li>
+<li><p>FlashAttributeResultMatchers flash()：得到Flash属性验证；</p>
+</li>
+<li><p>StatusResultMatchers status()：得到响应状态验证器；</p>
+</li>
+<li><p>HeaderResultMatchers header()：得到响应Header验证器；</p>
+</li>
+<li><p>CookieResultMatchers cookie()：得到响应Cookie验证器；</p>
+</li>
+<li><p>ContentResultMatchers content()：得到响应内容验证器；</p>
+</li>
+<li><p>JsonPathResultMatchers jsonPath(String expression, Object … args)/ResultMatcher jsonPath  (String expression, Matcher matcher)：得到Json表达式验证器；</p>
+</li>
+<li><p>XpathResultMatchers xpath(String expression, Object… args)/XpathResultMatchers xpath(String expression, Map&lt;string, string=””&gt; namespaces, Object… args)：得到Xpath表达式验证器；</p>
+</li>
+<li><p>ResultMatcher forwardedUrl(final String expectedUrl)：验证处理完请求后转发的url（绝对匹配）；</p>
+</li>
+<li><p>ResultMatcher forwardedUrlPattern(final String urlPattern)：验证处理完请求后转发的url（Ant风格模式匹配，@since spring4）；</p>
+</li>
+<li><p>ResultMatcher redirectedUrl(final String expectedUrl)：验证处理完请求后重定向的url（绝对匹配）；</p>
+</li>
+<li><p>ResultMatcher redirectedUrlPattern(final String expectedUrl)：验证处理完请求后重定向的url（Ant风格模式匹配，@since spring4）</p>
+</li>
+</ul>
+<h5 id="ResultHandler"><a href="#ResultHandler" class="headerlink" title="ResultHandler"></a>ResultHandler</h5><p>ResultHandler用于对处理的结果进行相应处理的，Spring mvc测试框架提供了MockMvcResultHandlers静态工厂方法</p>
+<h5 id="MockMvcResultHandlers的API"><a href="#MockMvcResultHandlers的API" class="headerlink" title="MockMvcResultHandlers的API"></a>MockMvcResultHandlers的API</h5><ul>
+<li>ResultHandler log()</li>
+<li>ResultHandler print()</li>
+<li>ResultHandler print(OutputStream stream)</li>
+<li>ResultHandler print(Writer writer)</li>
+</ul>
+<h4 id="关系梳理"><a href="#关系梳理" class="headerlink" title="关系梳理"></a>关系梳理</h4><ul>
+<li>MockMvcBuilder——&gt;通过MockMvcBuilders工厂方法生成MockMvcBuilder</li>
+<li>MockMvc——&gt;通过MockMvc的perform方法接收RequestBuilder生成ResultActions</li>
+<li>RequestBuilder——&gt;通过MockMvcRequestBuilders工厂get、post…方法生成RequestBuilder</li>
+<li>ResultActions——&gt;andExpect()、andDo()返回ResultActions，链式操作；andReturn()产生MvcResult对象</li>
+<li>ResultMatcher——&gt;ResultActions的andExpect()方法接收ResultMatcher，进行结果校验</li>
+<li>ResultHandler——&gt;ResultActions的andDo()方法接收ResultHandler，对结果进行处理</li>
+</ul>
+<h4 id="常用案例"><a href="#常用案例" class="headerlink" title="常用案例"></a>常用案例</h4><h5 id="测试普通控制器"><a href="#测试普通控制器" class="headerlink" title="测试普通控制器"></a>测试普通控制器</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">mockMvc.perform(get(&quot;&#x2F;user&#x2F;&#123;id&#125;&quot;, 1)) &#x2F;&#x2F;执行请求  </span><br><span class="line">        .andExpect(model().attributeExists(&quot;user&quot;)) &#x2F;&#x2F;验证存储模型数据  </span><br><span class="line">        .andExpect(view().name(&quot;user&#x2F;view&quot;)) &#x2F;&#x2F;验证viewName  </span><br><span class="line">        .andExpect(forwardedUrl(&quot;&#x2F;WEB-INF&#x2F;jsp&#x2F;user&#x2F;view.jsp&quot;))&#x2F;&#x2F;验证视图渲染时forward到的jsp  </span><br><span class="line">        .andExpect(status().isOk())&#x2F;&#x2F;验证状态码  </span><br><span class="line">        .andDo(print()); &#x2F;&#x2F;输出MvcResult到控制台</span><br></pre></td></tr></table></figure>
+
+<h5 id="得到MvcResult自定义验证"><a href="#得到MvcResult自定义验证" class="headerlink" title="得到MvcResult自定义验证"></a>得到MvcResult自定义验证</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">MvcResult result &#x3D; mockMvc.perform(get(&quot;&#x2F;user&#x2F;&#123;id&#125;&quot;, 1))&#x2F;&#x2F;执行请求  </span><br><span class="line">        .andReturn(); &#x2F;&#x2F;返回MvcResult  </span><br><span class="line">Assert.assertNotNull(result.getModelAndView().getModel().get(&quot;user&quot;)); &#x2F;&#x2F;自定义断言   </span><br><span class="line"></span><br><span class="line">验证请求参数绑定到模型数据及Flash属性</span><br><span class="line">mockMvc.perform(post(&quot;&#x2F;user&quot;).param(&quot;name&quot;, &quot;zhang&quot;)) &#x2F;&#x2F;执行传递参数的POST请求(也可以post(&quot;&#x2F;user?name&#x3D;zhang&quot;))  </span><br><span class="line">            .andExpect(handler().handlerType(UserController.class)) &#x2F;&#x2F;验证执行的控制器类型  </span><br><span class="line">            .andExpect(handler().methodName(&quot;create&quot;)) &#x2F;&#x2F;验证执行的控制器方法名  </span><br><span class="line">            .andExpect(model().hasNoErrors()) &#x2F;&#x2F;验证页面没有错误  </span><br><span class="line">            .andExpect(flash().attributeExists(&quot;success&quot;)) &#x2F;&#x2F;验证存在flash属性  </span><br><span class="line">            .andExpect(view().name(&quot;redirect:&#x2F;user&quot;)); &#x2F;&#x2F;验证视图</span><br></pre></td></tr></table></figure>
+<h5 id="文件上传"><a href="#文件上传" class="headerlink" title="文件上传"></a>文件上传</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">byte[] bytes &#x3D; new byte[] &#123;1, 2&#125;;  </span><br><span class="line">mockMvc.perform(fileUpload(&quot;&#x2F;user&#x2F;&#123;id&#125;&#x2F;icon&quot;, 1L).file(&quot;icon&quot;, bytes)) &#x2F;&#x2F;执行文件上传  </span><br><span class="line">        .andExpect(model().attribute(&quot;icon&quot;, bytes)) &#x2F;&#x2F;验证属性相等性  </span><br><span class="line">        .andExpect(view().name(&quot;success&quot;)); &#x2F;&#x2F;验证视图</span><br></pre></td></tr></table></figure>
+<h5 id="JSON请求-响应验证"><a href="#JSON请求-响应验证" class="headerlink" title="JSON请求/响应验证"></a>JSON请求/响应验证</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">String requestBody &#x3D; &quot;&#123;\&quot;id\&quot;:1, \&quot;name\&quot;:\&quot;zhang\&quot;&#125;&quot;;  </span><br><span class="line">    mockMvc.perform(post(&quot;&#x2F;user&quot;)  </span><br><span class="line">            .contentType(MediaType.APPLICATION_JSON).content(requestBody)  </span><br><span class="line">            .accept(MediaType.APPLICATION_JSON)) &#x2F;&#x2F;执行请求  </span><br><span class="line">            .andExpect(content().contentType(MediaType.APPLICATION_JSON)) &#x2F;&#x2F;验证响应contentType  </span><br><span class="line">            .andExpect(jsonPath(&quot;$.id&quot;).value(1)); &#x2F;&#x2F;使用Json path验证JSON 请参考http:&#x2F;&#x2F;goessner.net&#x2F;articles&#x2F;JsonPath&#x2F;   </span><br><span class="line">    String errorBody &#x3D; &quot;&#123;id:1, name:zhang&#125;&quot;;  </span><br><span class="line">    MvcResult result &#x3D; mockMvc.perform(post(&quot;&#x2F;user&quot;)  </span><br><span class="line">            .contentType(MediaType.APPLICATION_JSON).content(errorBody)  </span><br><span class="line">            .accept(MediaType.APPLICATION_JSON)) &#x2F;&#x2F;执行请求  </span><br><span class="line">            .andExpect(status().isBadRequest()) &#x2F;&#x2F;400错误请求  </span><br><span class="line">            .andReturn();   </span><br><span class="line">    Assert.assertTrue(HttpMessageNotReadableException.class.isAssignableFrom(result.getResolvedException().getClass()));&#x2F;&#x2F;错误的请求内容体</span><br></pre></td></tr></table></figure>
+
+<h5 id="异步测试"><a href="#异步测试" class="headerlink" title="异步测试"></a>异步测试</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;Callable  </span><br><span class="line">MvcResult result &#x3D; mockMvc.perform(get(&quot;&#x2F;user&#x2F;async1?id&#x3D;1&amp;name&#x3D;zhang&quot;)) &#x2F;&#x2F;执行请求  </span><br><span class="line">        .andExpect(request().asyncStarted())  </span><br><span class="line">        .andExpect(request().asyncResult(CoreMatchers.instanceOf(User.class))) &#x2F;&#x2F;默认会等10秒超时  </span><br><span class="line">        .andReturn();  </span><br><span class="line">    </span><br><span class="line">mockMvc.perform(asyncDispatch(result))  </span><br><span class="line">        .andExpect(status().isOk())  </span><br><span class="line">        .andExpect(content().contentType(MediaType.APPLICATION_JSON))  </span><br><span class="line">        .andExpect(jsonPath(&quot;$.id&quot;).value(1));</span><br></pre></td></tr></table></figure>
+
+<h5 id="全局配置"><a href="#全局配置" class="headerlink" title="全局配置"></a>全局配置</h5><pre><code>mockMvc = webAppContextSetup(wac)  
+        .defaultRequest(get(&quot;/user/1&quot;).requestAttr(&quot;default&quot;, true)) //默认请求 如果其是Mergeable类型的，会自动合并的哦mockMvc.perform中的RequestBuilder  
+        .alwaysDo(print())  //默认每次执行请求后都做的动作  
+        .alwaysExpect(request().attribute(&quot;default&quot;, true)) //默认每次执行后进行验证的断言  
+        .build();  
+
+mockMvc.perform(get(&quot;/user/1&quot;))  
+        .andExpect(model().attributeExists(&quot;user&quot;));
+</code></pre></section>
+    <!-- Tags START -->
+    
+    <!-- Tags END -->
+    <!-- NAV START -->
+    
+  <div class="nav-container">
+    <!-- reverse left and right to put prev and next in a more logic postition -->
+    
+      <a class="nav-left" href="/2020/12/23/MySQL%E6%AD%BB%E9%94%81%E5%88%86%E6%9E%90/">
+        <span class="nav-arrow">← </span>
+        
+          MySQL死锁分析
+        
+      </a>
+    
+    
+      <a class="nav-right" href="/2020/12/23/Jmeter%E5%8E%8B%E6%B5%8B%E5%AE%9E%E6%97%B6%E7%9B%91%E6%8E%A7/">
+        
+          Jmeter压测实时监控
+        
+        <span class="nav-arrow"> →</span>
+      </a>
+    
+  </div>
+
+    <!-- NAV END -->
+    <!-- 打赏 START -->
+    
+    <!-- 打赏 END -->
+    <!-- 二维码 START -->
+    
+    <!-- 二维码 END -->
+    
+      <!-- Gitment START -->
+      <div id="comments"></div>
+      <!-- Gitment END -->
+    
+  </article>
+  <!-- Article END -->
+  <!-- Catalog START -->
+  
+  <!-- Catalog END -->
+</main>
+
+<script>
+  (function () {
+    var url = 'http://yoursite.com/2020/12/23/MockMVC/';
+    var banner = ''
+    if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
+      $('#article-banner').css({
+        'background-image': 'url(' + banner + ')'
+      })
+    } else {
+      $('#article-banner').geopattern(url)
+    }
+    $('.header').removeClass('fixed-header')
+
+    // error image
+    $(".markdown-content img").on('error', function() {
+      $(this).attr('src', 'http://file.muyutech.com/error-img.png')
+      $(this).css({
+        'cursor': 'default'
+      })
+    })
+
+    // zoom image
+    $(".markdown-content img").on('click', function() {
+      var src = $(this).attr('src')
+      if (src !== 'http://file.muyutech.com/error-img.png') {
+        var imageW = $(this).width()
+        var imageH = $(this).height()
+
+        var zoom = ($(window).width() * 0.95 / imageW).toFixed(2)
+        zoom = zoom < 1 ? 1 : zoom
+        zoom = zoom > 2 ? 2 : zoom
+        var transY = (($(window).height() - imageH) / 2).toFixed(2)
+
+        $('body').append('<div class="image-view-wrap"><div class="image-view-inner"><img src="'+ src +'" /></div></div>')
+        $('.image-view-wrap').addClass('wrap-active')
+        $('.image-view-wrap img').css({
+          'width': `${imageW}`,
+          'transform': `translate3d(0, ${transY}px, 0) scale3d(${zoom}, ${zoom}, 1)`
+        })
+        $('html').css('overflow', 'hidden')
+
+        $('.image-view-wrap').on('click', function() {
+          $(this).remove()
+          $('html').attr('style', '')
+        })
+      }
+    })
+  })();
+</script>
+
+
+
+
+  <script>
+    var gitmentConfig = "chufusheng";
+    if (gitmentConfig !== 'undefined') {
+      var gitment = new Gitment({
+        id: "MockMVC",
+        owner: "chufusheng",
+        repo: "chufusheng.github.io",
+        oauth: {
+          client_id: "9bd93c680695520eb060",
+          client_secret: "cd28053e845d1908ee4e6d17d9a510f2e841d3d5"
+        },
+        theme: {
+          render(state, instance) {
+            const container = document.createElement('div')
+            container.lang = "en-US"
+            container.className = 'gitment-container gitment-root-container'
+            container.appendChild(instance.renderHeader(state, instance))
+            container.appendChild(instance.renderEditor(state, instance))
+            container.appendChild(instance.renderComments(state, instance))
+            container.appendChild(instance.renderFooter(state, instance))
+            return container;
+          }
+        }
+      })
+      gitment.render(document.getElementById('comments'))
+    }
+  </script>
+
+<link rel="stylesheet" href="https://jjeejj.github.io/css/gitment.css">
+<script src="https://www.wenjunjiang.win/js/gitment.js"></script>
+
+
+    <div class="scroll-top">
+  <span class="arrow-icon"></span>
+</div>
+    <footer class="app-footer">
+  <!-- <p class="copyright">
+    &copy; 2020 | Proudly powered by <a href="https://hexo.io" target="_blank">Hexo</a>
+    <br>
+    Theme by <a href="https://github.com/yanm1ng" target="_blank" rel="noopener">yanm1ng</a>
+  </p> -->
+</footer>
+
+<script>
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+</script>
+<script>
+  async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+    FastClick.attach(document.body);
+  })
+</script>
+
+<script>
+  var hasLine = 'true';
+  async("//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js", function(){
+    $('figure pre').each(function(i, block) {
+      var figure = $(this).parents('figure');
+      if (hasLine === 'false') {
+        figure.find('.gutter').hide();
+      }
+      var lang = figure.attr('class').split(' ')[1] || 'code';
+      var codeHtml = $(this).html();
+      var codeTag = document.createElement('code');
+      codeTag.className = lang;
+      codeTag.innerHTML = codeHtml;
+      $(this).attr('class', '').empty().html(codeTag);
+      figure.attr('data-lang', lang.toUpperCase());
+      hljs.highlightBlock(block);
+    });
+  })
+</script>
+<!-- Baidu Tongji -->
+
+
+<script src="/js/script.js"></script>
+
+  </body>
+</html>

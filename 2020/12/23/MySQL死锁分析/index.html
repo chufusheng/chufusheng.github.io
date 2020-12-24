@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <meta name="description" content="yanm1ng&#39;s blog">
+  <meta name="keyword" content="hexo-theme, vuejs">
+  
+    <link rel="shortcut icon" href="/css/images/logo.png">
+  
+  <title>
+    
+      MySQL死锁分析 | ITest
+    
+  </title>
+  <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" rel="stylesheet">
+  <link href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css" rel="stylesheet">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/css/plugins/gitment.css">
+
+  
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/geopattern/1.2.3/js/geopattern.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
+  
+  
+    
+<script src="/js/gitment.js"></script>
+
+  
+  
+  
+    <!-- MathJax support START -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <!-- MathJax support END -->
+  
+
+
+  
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="ITest" type="application/atom+xml">
+</head>
+<div class="wechat-share">
+  <img src="/css/images/logo.png" />
+</div>
+
+  <body>
+    <header class="header fixed-header">
+  <div class="header-container">
+    <a class="home-link" href="/">
+      <div class="logo"></div>
+      <span>ITest</span>
+    </a>
+    <ul class="right-list">
+      
+        <li class="list-item">
+          
+            <a href="/" class="item-link">Home</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/tags/" class="item-link">Tags</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/archives/" class="item-link">Archives</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/project/" class="item-link">Projects</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/about/" class="item-link">About</a>
+          
+        </li>
+      
+    </ul>
+    <div class="menu">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </div>
+    <div class="menu-mask">
+      <ul class="menu-list">
+        
+          <li class="menu-item">
+            
+              <a href="/" class="menu-link">Home</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/tags/" class="menu-link">Tags</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/archives/" class="menu-link">Archives</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/project/" class="menu-link">Projects</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/about/" class="menu-link">About</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</header>
+
+    <div id="article-banner">
+  <h2>MySQL死锁分析</h2>
+  <p class="post-date">2020-12-23</p>
+  <div class="arrow-down">
+    <a href="javascript:;"></a>
+  </div>
+</div>
+<main class="app-body flex-box">
+  <!-- Article START -->
+  <article class="post-article">
+    <section class="markdown-content"><p>一、MySQL锁概述</p>
+<p>数据库锁定机制简单来说，就是数据库为了保证数据的一致性，而使各种共享资源在被并发访问变得有序所设计的一种规则。MySQL各存储引擎使用了三种类型（级别）的锁定机制：表级锁定，行级锁定和页级锁定。</p>
+<ol>
+<li>基本锁</li>
+</ol>
+<ul>
+<li>基本锁：共享锁(Shared Locks：S锁)与排他锁(Exclusive Locks：X锁)<br>mysql允许拿到S锁的事务读一行，允许拿到X锁的事务更新或删除一行。加了S锁的记录，允许其他事务再加S锁，不允许其他事务再加X锁；加了X锁的记录，不允许其他事务再加S锁或者X锁。</li>
+</ul>
+<ol start="2">
+<li>意向锁(Intention Locks)</li>
+</ol>
+<ul>
+<li>InnoDB为了支持多粒度(表锁与行锁)的锁并存，引入意向锁。意向锁是表级锁，可分为意向共享锁(IS锁)和意向排他锁(IX锁)。</li>
+</ul>
+<ol start="3">
+<li>行锁</li>
+</ol>
+<ul>
+<li>记录锁(Record Locks)<br>记录锁, 仅仅锁住索引记录的一行。单条索引记录上加锁，record lock锁住的永远是索引，而非记录本身，即使该表上没有任何索引，那么innodb会在后台创建一个隐藏的聚集主键索引，那么锁住的就是这个隐藏的聚集主键索引。所以说当一条sql没有走任何索引时，那么将会在每一条聚集索引后面加X锁，这个类似于表锁，但原理上和表锁应该是完全不同的。</li>
+<li>间隙锁(Gap Locks)</li>
+</ul>
+<ol>
+<li>区间锁, 仅仅锁住一个索引区间(开区间)。在索引记录之间的间隙中加锁，或者是在某一条索引记录之前或者之后加锁，并不包括该索引记录本身。</li>
+<li>next-key锁(Next-Key Locks)<br>next key锁有两层含义，一是对当前记录加X锁，防止记录被并发修改，同时锁住记录之前的GAP，<br>防止有新的记录插入到此记录之前。<br>record lock + gap lock, 左开右闭区间。</li>
+</ol>
+<ul>
+<li><p>插入意向锁(Insert Intention Locks)<br> Gap Lock中存在一种插入意向锁（Insert Intention Lock），在insert操作时产生。在多事务同时写入不同数据至同一索引间隙的时候，并不需要等待其他事务完成，不会发生锁等待。假设有一个记录索引包含键值4和7，不同的事务分别插入5和6，每个事务都会产生一个加在4-7之间的插入意向锁，获取在插入行上的排它锁，但是不会被互相锁住，因为数据行并不冲突。</p>
+</li>
+<li><p>实务的隔离级别</p>
+<pre><code>级别概述   由高到低
+① Serializable (串行化)：可避免脏读、不可重复读、幻读的发生。
+
+② Repeatable read (可重复读)：可避免脏读、不可重复读的发生。
+
+③ Read committed (读已提交)：可避免脏读的发生。
+
+④ Read uncommitted (读未提交)：最低级别，任何情况都无法保证。</code></pre></li>
+</ul>
+<hr>
+<p>二、死锁实例一</p>
+<pre><code>org.springframework.dao.DeadlockLoserDataAccessException:
+### Error updating database.  Cause: com.mysql.jdbc.exceptions.jdbc4.MySQLTransactionRollbackException: Deadlock found when trying to get lock; try restarting transaction
+### The error may involve com.wacai.platform.push.core.dao.mapper.UserPushMapper.updateByExample-Inline
+### The error occurred while setting parameters
+### SQL: UPDATE user_push  SET userId = ?,uid = ?,deviceId = ?,app = ?,channelType = ?,pushId = ?,version = ?,mc = ?,platform = ?,system_type = ?,createTime = ?,lastModTime = ? WHERE (  pushId = ? )
+### Cause: com.mysql.jdbc.exceptions.jdbc4.MySQLTransactionRollbackException: Deadlock found when trying to get lock; try restarting transaction
+; SQL []; Deadlock found when trying to get lock; try restarting transaction; nested exception is com.mysql.jdbc.exceptions.jdbc4.MySQLTransactionRollbackException: Deadlock found when trying to get lock; try restarting transaction
+    at org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator.doTranslate(SQLErrorCodeSQLExceptionTranslator.java:263)
+    at org.springframework.jdbc.support.AbstractFallbackSQLExceptionTranslator.translate(AbstractFallbackSQLExceptionTranslator.java:73)
+    at org.mybati</code></pre><ul>
+<li><p>这种日志出现时  我们可以分析原因可能就是数据库锁造成，我们可以查看数据库是否有死锁日志，如果有进行分析找到原因。</p>
+</li>
+<li><p>查看数据库实务的隔离级别命令    </p>
+<pre><code>select @@tx_isolation;
+
+此案例隔离级别为RC级别</code></pre></li>
+<li><p>查看死锁命令</p>
+<pre><code>SHOW ENGINE INNODB STATUS;</code></pre></li>
+</ul>
+<ul>
+<li><p>死锁日志</p>
+<pre><code>--------------------------
+LATEST DETECTED DEADLOCK
+------------------------
+2018-05-21 11:56:51 7fbbcf073700
+*** (1) TRANSACTION:
+TRANSACTION 35686607206, ACTIVE 0 sec starting index read
+mysql tables in use 1, locked 1
+#这行表示事务5686607206 正在使用1个表，且涉及锁的表有1个
+LOCK WAIT 2 lock struct(s), heap size 360, 1 row lock(s)
+#这行表示在等待两把锁，占用内存360字节，涉及1行记录，如果事务已经锁定了几行数据，这里将会有一行信息显示出锁定结构的数目（注意，这跟行锁是两回事）和堆大小，堆的大小指的是为了持有这些行锁而占用的内存大小，Innodb是用一种特殊的位图表来实现行锁的，从理论上讲，它可将每一个锁定的行表示为一个比特，经测试显示，每个锁通常不超过4比特
+MySQL thread id 17625650, OS thread handle 0x7fbbabfff700, query id 3324702142 192.168.3.118 qa_conn updating
+#这行表示该事务的线程ID信息，操作系统句柄信息，连接来源、用户
+DELETE FROM user_push  WHERE (  pushId = &apos;1234567&apos; )
+#这行表示事务涉及的SQL
+*** (1) WAITING FOR THIS LOCK TO BE GRANTED:
+#这行信息表示第一个事务正在等待锁被授予
+RECORD LOCKS space id 61173 page no 55058 n bits 424 index `uk_pushId` of table `wac_members`.`user_push` trx id 35686607206 lock_mode X locks rec but not gap waiting
+#这行信息表示等待的锁是一个record lock，空间id是61173，页编号为55058，大概位置在页的424位处，锁发生在表`wac_members`.`user_push的主键上，是一个X锁，但是不是gap lock。 waiting表示正在等待锁
+*** (2) TRANSACTION:
+TRANSACTION 35686607204, ACTIVE 0 sec inserting, thread declared inside InnoDB 5000
+mysql tables in use 1, locked 1
+4 lock struct(s), heap size 1184, 4 row lock(s), undo log entries 2
+MySQL thread id 17625649, OS thread handle 0x7fbbcf073700, query id 3324702145 192.168.3.118 qa_conn update
+INSERT INTO user_push  ( id,userId,uid,deviceId,app,channelType,pushId,version,mc,platform,system_type,createTime,lastModTime ) VALUES( null,null,0,&apos;1&apos;,3,4,&apos;1234567&apos;,&apos;111&apos;,&apos;1&apos;,41,&apos;OTHER&apos;,null,null )
+*** (2) HOLDS THE LOCK(S):
+RECORD LOCKS space id 61173 page no 55058 n bits 424 index `uk_pushId` of table `wac_members`.`user_push` trx id 35686607204 lock_mode X locks rec but not gap
+*** (2) WAITING FOR THIS LOCK TO BE GRANTED:
+RECORD LOCKS space id 61173 page no 55058 n bits 424 index `uk_pushId` of table `wac_members`.`user_push` trx id 35686607204 lock mode S waiting
+*** WE ROLL BACK TRANSACTION (1)</code></pre></li>
+<li><p>在查看了很多文档及补充了知识(这部分会在最后介绍到，包括锁，死锁的各种场景，事务等知识)之后发现,具体到这条记录死锁的产生原因如下：<br> 从日志里我们可以看到事务1当前正在执行DELETE FROM user_push WHERE ( pushId = ‘1234567’ )，该条语句正在申请索引uk_pushId的X锁，所以提示lock_mode X waiting。</p>
+<p> 从日志的HOLDS THE LOCKS(S)块中我们可以看到事务2持有索引push_id的X锁，并且是记录锁（Record Lock）。</p>
+<p> 从日志的WAITING FOR THIS LOCK TO BE GRANTED块中我们可以看到事务2正在申请S锁，也就是共享锁。该锁是INSERT INTO user_push ( id,userId,uid,deviceId,app,channelType,pushId,version,mc,platform,system_type,createTime,lastModTime ) VALUES( null,null,0,’1’,3,4,’1234567’,’111’,’1’,41,’OTHER’,null,null )语句申请的。insert语句在普通情况下是会申请排他锁，也就是X锁，但是这里出现了S锁。这是因为push_id字段是一个唯一索引，所以insert语句会在插入前进行一次duplicate key的检查，为了使这次检查成功，需要申请S锁防止其他事务对push_id字段进行修改。</p>
+<p> 那么为什么该S锁会失败呢？这是对同一个字段的锁的申请是需要排队的。S锁前面还有一个未申请成功的X锁，所以S锁必须等待，所以形成了循环等待，死锁出现了</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>实务1</th>
+<th>实务2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td></td>
+<td>begin</td>
+</tr>
+<tr>
+<td>2</td>
+<td></td>
+<td>delete;执行成功，实务2占有pushid=1234567的X锁，类型为记忆锁。</td>
+</tr>
+<tr>
+<td>3</td>
+<td>begin</td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td>DELETE FROM user_push  WHERE (  pushId =’1234567’)</td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td>出现死锁，实务一权重较小，所以回滚</td>
+<td>install；由于push_id字段建立唯一索引，所以需要申请S锁以便检查duplicate key，由于插入的A的之是2，所以排在X锁后面。但是前面的X锁的申请只有在实务2commit或者rollback只有才能成功，此时形成了循环等待，死锁产生。</td>
+</tr>
+</tbody></table>
+<hr>
+<ul>
+<li><p>死锁案例二</p>
+</li>
+<li><p>此案例隔离级别为RR</p>
+</li>
+<li><p>死锁日志</p>
+<pre><code>2018-05-22 12:47:40 7efdf9dec700InnoDB: transactions deadlock detected, dumping detailed information.
+2018-05-22 12:47:40 7efdf9dec700
+*** (1) TRANSACTION:
+TRANSACTION 4228123807, ACTIVE 0 sec starting index read
+mysql tables in use 1, locked 1
+LOCK WAIT 2 lock struct(s), heap size 360, 1 row lock(s)
+MySQL thread id 6949098, OS thread handle 0x7efb8f078700, query id 7126778404 10.1.96.139 wacuser updating
+DELETE FROM user_push  WHERE (  pushId = &apos;63a4ba7bd19068068631850df110605f9053de9ae77d7d27e5041d25592aa4bf&apos; )
+*** (1) WAITING FOR THIS LOCK TO BE GRANTED:
+RECORD LOCKS space id 108 page no 11828 n bits 288 index `uk_pushId` of table `push_sharding001`.`user_push` trx id 4228123807 lock_mode X waiting
+*** (2) TRANSACTION:
+TRANSACTION 4228123799, ACTIVE 0 sec starting index read, thread declared inside InnoDB 1
+mysql tables in use 1, locked 1
+3 lock struct(s), heap size 1184, 2 row lock(s)
+MySQL thread id 6945902, OS thread handle 0x7efdf9dec700, query id 7126778393 10.1.96.109 wacuser updating
+DELETE FROM user_push  WHERE (  pushId = &apos;63a4ba7bd19068068631850df110605f9053de9ae77d7d27e5041d25592aa4bf&apos; )
+*** (2) HOLDS THE LOCK(S):
+RECORD LOCKS space id 108 page no 11828 n bits 288 index `uk_pushId` of table `push_sharding001`.`user_push` trx id 4228123799 lock_mode X locks rec but not gap
+*** (2) WAITING FOR THIS LOCK TO BE GRANTED:
+RECORD LOCKS space id 108 page no 11828 n bits 288 index `uk_pushId` of table `push_sharding001`.`user_push` trx id 4228123799 lock_mode X waiting
+*** WE ROLL BACK TRANSACTION (1)</code></pre></li>
+<li><p>初步分析</p>
+<p>  并发事务，每个事务只有一条SQL语句：给定唯一的二级索引键值，删除一条记录。每个事务，最多只会删除一条记录，为什么会产生死锁？这绝对是不可能的。但是，事实上，却真的是发生了死锁。产生死锁的两个事务，删除的是同一条记录，这应该是死锁发生的一个潜在原因，但是，即使是删除同一条记录，从原理上来说，也不应该产生死锁。因此，经过初步分析，这个死锁是不可能产生的。这个结论，远远不够！</p>
+</li>
+<li><p>Delete操作的加锁逻辑</p>
+</li>
+</ul>
+<pre><code>在《MySQL加锁处理分析》一文中，我详细分析了各种SQL语句对应的加锁逻辑。例如：Delete语句，内部就包含一个当前读(加锁读)，然后通过当前读返回的记录，调用Delete操作进行删除。在此文的 组合六：
+id唯一索引+RR 中，可以看到，RR隔离级别下，针对于满足条件的查询记录，会对记录加上排它锁(X锁)，但是并不会锁住记录之前的GAP(no gap lock)。对应到此文上面的死锁例子，事务2所持有的锁，是一把记录上的排它锁，但是没有锁住记录前的GAP(lock_mode X locks rec but not gap)，与我之前的加锁分析一致。
+
+在《MySQL加锁处理分析》一文中的 组合七：id非唯一索引+RR 部分的最后，我还提出了一个问题：
+如果组合五、组合六下，针对SQL：select * from t1 where id = 10 for update; 第一次查询，没有找到满足查询条件的记录，那么GAP锁是否还能够省略？针对此问题，参与的朋友在做过试验之后，给出的正确答案是：此时GAP锁不能省略，会在第一个不满足查询条件的记录上加GAP锁，防止新的满足条件的记录插入。
+
+以上两个加锁策略，都是正确的。以上两个策略，分别对应的是：
+1） 唯一索引上满足查询条件的记录存在并且有效；
+2）唯一索引上满足查询条件的记录不存在。但是，除了这两个之外，其实还有第三种：
+3）唯一索引上满足查询条件的记录存在但是无效。众所周知，InnoDB上删除一条记录，并不是真正意义上的物理删除，而是将记录标识为删除状态。(注：这些标识为删除状态的记录，后续会由后台的Purge操作进行回收，物理删除。但是，删除状态的记录会在索引中存放一段时间。) 在RR隔离级别下，唯一索引上满足查询条件，但是却是删除记录，如何加锁？InnoDB在此处的处理策略与前两种策略均不相同，或者说是前两种策略的组合：对于满足条件的删除记录，InnoDB会在记录上加next key lock X(对记录本身加X锁，同时锁住记录前的GAP，防止新的满足条件的记录插入。) Unique查询，三种情况，对应三种加锁策略，总结如下：
+
+找到满足条件的记录，并且记录有效，则对记录加X锁，No Gap锁(lock_mode X locks rec but not gap)；
+找到满足条件的记录，但是记录无效(标识为删除的记录)，则对记录加next key锁(同时锁住记录本身，以及记录之前的Gap：lock_mode X);
+未找到满足条件的记录，则对第一个不满足条件的记录加Gap锁，保证没有满足条件的记录插入(locks gap before rec)；
+
+此处，我们看到了next key锁，是否很眼熟？对了，前面死锁中事务1，事务2处于等待状态的锁，均为next key锁。明白了这三个加锁策略，其实构造一定的并发场景，死锁的原因已经呼之欲出。但是，还有一个前提策略需要介绍，那就是InnoDB内部采用的死锁预防策略。</code></pre><ul>
+<li><p>剖析死锁的成因</p>
+<p>  做了这么多铺垫，有了Delete操作的3种加锁逻辑、InnoDB的死锁预防策略等准备知识之后，再回过头来分析本文最初提到的死锁问题，就会手到拈来，事半而功倍。</p>
+<p>  首先，假设user_push中只有一条记录：(1, ‘aaa’, ‘data’)。三个并发事务，同时执行以下的这条SQL：</p>
+<p>  DELETE FROM user_push  WHERE (  pushId = ‘aaa’ )；</p>
+<p>  并且产生了以下的并发执行逻辑，就会产生死锁：<br>  事务0：DELETE FROM user_push  WHERE (  pushId = ‘aaa’ )；<br>  事务1：DELETE FROM user_push  WHERE (  pushId = ‘aaa’ )；<br>  事务2：DELETE FROM user_push  WHERE (  pushId = ‘aaa’ )；</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>事务1</th>
+<th>事务2</th>
+<th>事务3</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>在pushId索引上，对pushId进行加锁（）lock_mode X rec but not gap</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td></td>
+<td></td>
+<td>在pushId索引上，对pushId进行加锁（）lock_mode X rec but not gap</td>
+</tr>
+<tr>
+<td>此时需要等待，因此释放页面锁，等待记录锁</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>进行删除操作，将索引上的记录标识为删除状态</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td>事务0提交，释放记录锁</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td></td>
+<td></td>
+<td>事务2在事务0提交后，成功获取 (lock_mode X not gap)记录锁，此时,由于此锁是在页面锁之后获取，记录可能已经被修改，因此需要restart，重新获取记录状态</td>
+</tr>
+<tr>
+<td>6</td>
+<td></td>
+<td>事务1持有页面锁，读取到对应的记录，发现满足条件的记录存在，但为删除状态的jia</td>
+<td></td>
+</tr>
+<tr>
+<td>7</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>8</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+</section>
+    <!-- Tags START -->
+    
+    <!-- Tags END -->
+    <!-- NAV START -->
+    
+  <div class="nav-container">
+    <!-- reverse left and right to put prev and next in a more logic postition -->
+    
+      <a class="nav-left" href="/2020/05/26/java8-stream/">
+        <span class="nav-arrow">← </span>
+        
+          java8-stream
+        
+      </a>
+    
+    
+      <a class="nav-right" href="/2020/12/23/MockMVC/">
+        
+          MockMVC
+        
+        <span class="nav-arrow"> →</span>
+      </a>
+    
+  </div>
+
+    <!-- NAV END -->
+    <!-- 打赏 START -->
+    
+    <!-- 打赏 END -->
+    <!-- 二维码 START -->
+    
+    <!-- 二维码 END -->
+    
+      <!-- Gitment START -->
+      <div id="comments"></div>
+      <!-- Gitment END -->
+    
+  </article>
+  <!-- Article END -->
+  <!-- Catalog START -->
+  
+  <!-- Catalog END -->
+</main>
+
+<script>
+  (function () {
+    var url = 'http://yoursite.com/2020/12/23/MySQL死锁分析/';
+    var banner = ''
+    if (banner !== '' && banner !== 'undefined' && banner !== 'null') {
+      $('#article-banner').css({
+        'background-image': 'url(' + banner + ')'
+      })
+    } else {
+      $('#article-banner').geopattern(url)
+    }
+    $('.header').removeClass('fixed-header')
+
+    // error image
+    $(".markdown-content img").on('error', function() {
+      $(this).attr('src', 'http://file.muyutech.com/error-img.png')
+      $(this).css({
+        'cursor': 'default'
+      })
+    })
+
+    // zoom image
+    $(".markdown-content img").on('click', function() {
+      var src = $(this).attr('src')
+      if (src !== 'http://file.muyutech.com/error-img.png') {
+        var imageW = $(this).width()
+        var imageH = $(this).height()
+
+        var zoom = ($(window).width() * 0.95 / imageW).toFixed(2)
+        zoom = zoom < 1 ? 1 : zoom
+        zoom = zoom > 2 ? 2 : zoom
+        var transY = (($(window).height() - imageH) / 2).toFixed(2)
+
+        $('body').append('<div class="image-view-wrap"><div class="image-view-inner"><img src="'+ src +'" /></div></div>')
+        $('.image-view-wrap').addClass('wrap-active')
+        $('.image-view-wrap img').css({
+          'width': `${imageW}`,
+          'transform': `translate3d(0, ${transY}px, 0) scale3d(${zoom}, ${zoom}, 1)`
+        })
+        $('html').css('overflow', 'hidden')
+
+        $('.image-view-wrap').on('click', function() {
+          $(this).remove()
+          $('html').attr('style', '')
+        })
+      }
+    })
+  })();
+</script>
+
+
+
+
+  <script>
+    var gitmentConfig = "chufusheng";
+    if (gitmentConfig !== 'undefined') {
+      var gitment = new Gitment({
+        id: "MySQL死锁分析",
+        owner: "chufusheng",
+        repo: "chufusheng.github.io",
+        oauth: {
+          client_id: "9bd93c680695520eb060",
+          client_secret: "cd28053e845d1908ee4e6d17d9a510f2e841d3d5"
+        },
+        theme: {
+          render(state, instance) {
+            const container = document.createElement('div')
+            container.lang = "en-US"
+            container.className = 'gitment-container gitment-root-container'
+            container.appendChild(instance.renderHeader(state, instance))
+            container.appendChild(instance.renderEditor(state, instance))
+            container.appendChild(instance.renderComments(state, instance))
+            container.appendChild(instance.renderFooter(state, instance))
+            return container;
+          }
+        }
+      })
+      gitment.render(document.getElementById('comments'))
+    }
+  </script>
+
+<link rel="stylesheet" href="https://jjeejj.github.io/css/gitment.css">
+<script src="https://www.wenjunjiang.win/js/gitment.js"></script>
+
+
+    <div class="scroll-top">
+  <span class="arrow-icon"></span>
+</div>
+    <footer class="app-footer">
+  <!-- <p class="copyright">
+    &copy; 2020 | Proudly powered by <a href="https://hexo.io" target="_blank">Hexo</a>
+    <br>
+    Theme by <a href="https://github.com/yanm1ng" target="_blank" rel="noopener">yanm1ng</a>
+  </p> -->
+</footer>
+
+<script>
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+</script>
+<script>
+  async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+    FastClick.attach(document.body);
+  })
+</script>
+
+<script>
+  var hasLine = 'true';
+  async("//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js", function(){
+    $('figure pre').each(function(i, block) {
+      var figure = $(this).parents('figure');
+      if (hasLine === 'false') {
+        figure.find('.gutter').hide();
+      }
+      var lang = figure.attr('class').split(' ')[1] || 'code';
+      var codeHtml = $(this).html();
+      var codeTag = document.createElement('code');
+      codeTag.className = lang;
+      codeTag.innerHTML = codeHtml;
+      $(this).attr('class', '').empty().html(codeTag);
+      figure.attr('data-lang', lang.toUpperCase());
+      hljs.highlightBlock(block);
+    });
+  })
+</script>
+<!-- Baidu Tongji -->
+
+
+<script src="/js/script.js"></script>
+
+  </body>
+</html>
