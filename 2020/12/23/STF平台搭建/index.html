@@ -177,9 +177,11 @@
 <h4 id="2-拉去镜像"><a href="#2-拉去镜像" class="headerlink" title="2.拉去镜像"></a>2.拉去镜像</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sudo docker pull openstf&#x2F;stf:latest # STF镜像</span><br><span class="line">sudo docker pull sorccu&#x2F;adb:latest # android adb 镜像</span><br><span class="line">sudo docker pull rethinkdb:latest # rethinkdb 镜像</span><br><span class="line">sudo docker pull openstf&#x2F;ambassador:latest</span><br><span class="line">sudo docker pull nginx:latest # nginx代理镜像</span><br></pre></td></tr></table></figure>
 
 <h4 id="3-检查镜像"><a href="#3-检查镜像" class="headerlink" title="3.检查镜像"></a>3.检查镜像</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo docker images</span><br></pre></td></tr></table></figure>
-<h4 id="4-启动镜像"><a href="#4-启动镜像" class="headerlink" title="4.启动镜像"></a>4.启动镜像</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">- docker run -d --name rethinkdb -v &#x2F;srv&#x2F;rethinkdb:&#x2F;data --net host rethinkdb rethinkdb --bind all --cache-size 8192 --http-port 8090</span><br><span class="line">- docker run -d --name adbd --privileged -v &#x2F;dev&#x2F;bus&#x2F;usb:&#x2F;dev&#x2F;bus&#x2F;usb --net host sorccu&#x2F;adb:latest</span><br><span class="line">- docker run -d --name stf --net host openstf&#x2F;stf stf local --public-ip &lt;your-ip&gt;</span><br><span class="line">- sudo docker ps -a</span><br></pre></td></tr></table></figure>
+<h4 id="4-启动镜像"><a href="#4-启动镜像" class="headerlink" title="4.启动镜像"></a>4.启动镜像</h4><p>linux 系统</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">- docker run -d --name rethinkdb -v &#x2F;srv&#x2F;rethinkdb:&#x2F;data --net host rethinkdb rethinkdb --bind all --cache-size 8192 --http-port 8090</span><br><span class="line">- docker run -d --name adbd --privileged -v &#x2F;dev&#x2F;bus&#x2F;usb:&#x2F;dev&#x2F;bus&#x2F;usb --net host sorccu&#x2F;adb:latest</span><br><span class="line">- docker run -d --name stf --net host openstf&#x2F;stf stf local --public-ip &lt;your-ip&gt;</span><br><span class="line">- docker ps -a</span><br></pre></td></tr></table></figure>
 
-</section>
+<p>Mac 系统  （–net host 在mac中不好使  所以使用–net=container:）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">- docker run -d --name rethinkdb -v &#x2F;srv&#x2F;rethinkdb:&#x2F;data -p 7100:7100 -p 8090:8090 rethinkdb rethinkdb --bind all --cache-size 8192 --http-port 8090</span><br><span class="line">- docker run -d --name adbd --privileged -v &#x2F;dev&#x2F;bus&#x2F;usb:&#x2F;dev&#x2F;bus&#x2F;usb --net&#x3D;container:$&#123;container_id&#125;  sorccu&#x2F;adb:latest</span><br><span class="line">- docker run -d --name stf  --net&#x3D;container:$&#123;container_id&#125; openstf&#x2F;stf stf local --public-ip &lt;your-ip&gt;</span><br><span class="line">- docker ps -a</span><br></pre></td></tr></table></figure></section>
     <!-- Tags START -->
     
     <!-- Tags END -->
@@ -305,8 +307,7 @@
     }
   </script>
 
-<link rel="stylesheet" href="https://jjeejj.github.io/css/gitment.css">
-<script src="https://www.wenjunjiang.win/js/gitment.js"></script>
+
 
 
     <div class="scroll-top">
@@ -314,7 +315,7 @@
 </div>
     <footer class="app-footer">
   <!-- <p class="copyright">
-    &copy; 2020 | Proudly powered by <a href="https://hexo.io" target="_blank">Hexo</a>
+    &copy; 2021 | Proudly powered by <a href="https://hexo.io" target="_blank">Hexo</a>
     <br>
     Theme by <a href="https://github.com/yanm1ng" target="_blank" rel="noopener">yanm1ng</a>
   </p> -->
